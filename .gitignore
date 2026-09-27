@@ -12,3 +12,9 @@ build/
 .ruff_cache/
 .coverage
 htmlcov/
+*.pem
+*.key
+wallet.json
+credentials.json
+*.db
+*.sqlite3
