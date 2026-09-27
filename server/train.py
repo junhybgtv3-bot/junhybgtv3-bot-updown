@@ -33,7 +33,8 @@ def print_calibration(y, probabilities):
               f"{predicted:>11} {actual:>17}")
 
 
-def main():
+def prepare_data(*, _timings=None):
+    """Return the existing splits; optional timings preserve main's reporting."""
     pipeline_start = time.perf_counter()
     # Exclude the currently open candle; exactly 120 days of completed minutes.
     end_exclusive = int(time.time() * 1000) // 60000 * 60000
@@ -83,14 +84,22 @@ def main():
     timestamps = pd.concat([part[2] for part in parts], ignore_index=True)
     if len(X) == 0:
         raise RuntimeError("No usable rows after gap segmentation")
-    training_start = time.perf_counter()
-    X, y, timestamps = build_dataset(candles, horizon_min=15, threshold=0.0005)
+    if _timings is not None:
+        _timings["training_start"] = time.perf_counter()
     splits = time_split(X, y, timestamps, purge=15)
     print(f"Dataset rows: {len(X):,}; features: {X.shape[1]}", flush=True)
     for name, (features, labels) in zip(("train", "validation", "test"), splits):
         print(f"{name}: rows={len(features):,}, mean(y)={labels.mean():.6f}", flush=True)
         if features.empty:
             raise RuntimeError(f"Empty {name} split")
+    return splits
+
+
+def main():
+    pipeline_start = time.perf_counter()
+    timings = {}
+    splits = prepare_data(_timings=timings)
+    training_start = timings["training_start"]
     (X_train, y_train), _, (X_test, y_test) = splits
     if y_train.nunique() != 2:
         raise RuntimeError("Training requires both classes")
