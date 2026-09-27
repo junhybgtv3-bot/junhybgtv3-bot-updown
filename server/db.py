@@ -68,3 +68,14 @@ def count_candles(symbol, db_path=DEFAULT_DB_PATH):
         return connection.execute(
             "SELECT COUNT(*) FROM candles WHERE symbol = ?", (symbol,)
         ).fetchone()[0]
+
+
+def get_candles(symbol, start_ms, end_ms, db_path=DEFAULT_DB_PATH):
+    """Load candles in an inclusive open-time range, in ascending order."""
+    with _connect(db_path) as connection:
+        connection.row_factory = sqlite3.Row
+        return [dict(row) for row in connection.execute(
+            "SELECT * FROM candles WHERE symbol = ? "
+            "AND open_time BETWEEN ? AND ? ORDER BY open_time",
+            (symbol, start_ms, end_ms),
+        )]

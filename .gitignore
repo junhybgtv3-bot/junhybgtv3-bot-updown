@@ -18,3 +18,5 @@ wallet.json
 credentials.json
 *.db
 *.sqlite3
+models/
+*.pkl
