@@ -1,0 +1,41 @@
+name: JTDJ Full Universe Backtest
+
+on:
+  push:
+    branches:
+      - jtdj-full-backtest-20260929
+    paths:
+      - 'experiments/jtdj_full_backtest/**'
+      - '.github/workflows/jtdj-full-backtest.yml'
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      HF_HUB_DISABLE_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install --disable-pip-version-check numpy pandas pyarrow huggingface_hub hf_xet
+      - name: Run full-universe backtest
+        run: |
+          python experiments/jtdj_full_backtest/run.py \
+            --start 2010-01-01 \
+            --end 2026-09-25 \
+            --setup 70 \
+            --cost-side 0.001 \
+            --max-hold 60 \
+            --min-price 2 \
+            --min-dollar-volume 1000000 \
+            --output-dir results/jtdj_full
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jtdj-full-backtest-results
+          path: results/jtdj_full/
+          if-no-files-found: warn
