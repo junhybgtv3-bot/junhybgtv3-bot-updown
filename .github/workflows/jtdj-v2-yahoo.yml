@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
       - run: pip install --disable-pip-version-check numpy pandas pyarrow huggingface_hub hf_xet
       - name: Download SPY benchmark
-        run: curl -L --fail --retry 3 "https://stooq.com/q/d/l/?s=spy.us&i=d" -o /tmp/spy.csv
+        run: curl -L --fail --retry 3 "https://raw.githubusercontent.com/Setooooo/etf-insight/master/data/raw/SPY.csv" -o /tmp/spy.csv
       - name: Run v2 Yahoo
         working-directory: experiments/jtdj_full_backtest
         run: python run_v2_yahoo.py --spy-csv /tmp/spy.csv --output-dir ../../results/jtdj_v2_yahoo
