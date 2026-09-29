@@ -100,7 +100,7 @@ def load_prices(root: Path, symbols: set[str], source: str) -> dict[str,pd.DataF
     return out
 
 def simulate(trades: pd.DataFrame, prices: dict[str,pd.DataFrame], max_positions: int,
-             initial_cash: float=100_000.0) -> tuple[pd.DataFrame,pd.DataFrame,dict]:
+             initial_cash: float=100_000.0, cost_side: float=0.001) -> tuple[pd.DataFrame,pd.DataFrame,dict]:
     if trades.empty:
         return pd.DataFrame(), pd.DataFrame(), {}
     start = trades["entry_date"].min()
@@ -168,7 +168,7 @@ def simulate(trades: pd.DataFrame, prices: dict[str,pd.DataFrame], max_positions
                 if capital <= 1e-9:
                     skipped += 1
                     continue
-                shares = capital / entry_price
+                shares = capital / (entry_price * (1.0 + cost_side))
                 cash -= capital
                 key = f"{sym}|{d.date()}|{accepted}"
                 pos[key] = {
