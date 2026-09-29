@@ -1,0 +1,43 @@
+name: JTDJ V3 Portfolio Quick
+
+on:
+  push:
+    branches: [jtdj-full-backtest-20260929]
+    paths:
+      - 'experiments/jtdj_full_backtest/portfolio_v3_quick.py'
+      - '.github/workflows/jtdj-v3-portfolio-quick.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  portfolio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install --disable-pip-version-check numpy pandas pyarrow huggingface_hub hf_xet
+      - name: Download prior V2 artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/11015433183/zip > /tmp/jtdj_v2.zip
+          unzip -l /tmp/jtdj_v2.zip | head -30
+      - name: Run locked V3 portfolio
+        working-directory: experiments/jtdj_full_backtest
+        run: |
+          python portfolio_v3_quick.py \
+            --artifact-zip /tmp/jtdj_v2.zip \
+            --output-dir ../../results/jtdj_v3_portfolio_quick
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jtdj-v3-portfolio-quick
+          path: results/jtdj_v3_portfolio_quick/
+          if-no-files-found: warn
