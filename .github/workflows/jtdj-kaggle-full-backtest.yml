@@ -1,0 +1,48 @@
+name: JTDJ Kaggle Full Universe Backtest
+
+on:
+  push:
+    branches:
+      - jtdj-full-backtest-20260929
+    paths:
+      - 'experiments/jtdj_full_backtest/run_kaggle.py'
+      - '.github/workflows/jtdj-kaggle-full-backtest.yml'
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install --disable-pip-version-check numpy pandas pyarrow huggingface_hub
+      - name: Download full Kaggle dataset
+        run: |
+          mkdir -p /tmp/market
+          curl -L --fail --retry 3 "https://www.kaggle.com/api/v1/datasets/download/borismarjanovic/price-volume-data-for-all-us-stocks-etfs" -o /tmp/market.zip
+          unzip -q /tmp/market.zip -d /tmp/market
+          echo "TXT_COUNT=$(find /tmp/market -type f -name '*.txt' | wc -l)"
+          echo "STOCK_DIR_COUNT=$(find /tmp/market -type f -path '*/Stocks/*.txt' | wc -l)"
+      - name: Run full-universe backtest
+        working-directory: experiments/jtdj_full_backtest
+        run: |
+          python run_kaggle.py \
+            --root /tmp/market \
+            --start 2000-01-01 \
+            --end 2017-11-10 \
+            --setup 70 \
+            --cost-side 0.001 \
+            --max-hold 60 \
+            --min-price 2 \
+            --min-dollar-volume 1000000 \
+            --output-dir ../../results/jtdj_kaggle_full
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jtdj-kaggle-full-backtest-results
+          path: results/jtdj_kaggle_full/
+          if-no-files-found: warn
