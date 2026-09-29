@@ -78,7 +78,9 @@ def main():
             result[name].extend(backtest_v2(sym,df,spy_ctx,args.start,args.end,require_rs=req_rs,require_spy_regime=req_reg))
         if idx%500==0:
             print(f"PROGRESS {idx}/{len(files)} valid={valid} core={len(result['core'])} rs={len(result['rs_regime'])}",flush=True)
-    summary={"dataset":DATASET_ID,"files":len(files),"valid_symbols":valid,
+    if benchmark_ok:
+        result["v3_locked_rs5_10_rr2_3"]=[x for x in result["core"] if 0.05 <= x.relative_strength_20 < 0.10 and 2.0 <= x.rr_at_entry < 3.0]
+    summary={"dataset":DATASET_ID,"files":len(files),"valid_symbols":valid,"benchmark_ok":benchmark_ok,
              "period":{"start":args.start,"end":args.end},"strategies":{}}
     for name,tr in result.items():
         s=summarize(tr); s.update(bootstrap_ci(tr))
