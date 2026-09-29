@@ -52,11 +52,20 @@ def main():
         print(f"SPY_FILE_EXTERNAL={args.spy_csv}",flush=True)
         spy=pd.read_csv(args.spy_csv)
         spy.columns=[str(x).lower() for x in spy.columns]
-    if spy is None or spy.empty:
-        raise RuntimeError("Failed to load SPY benchmark")
-    spy_ctx=market_context(spy)
+    benchmark_ok=False
+    try:
+        if spy is not None and not spy.empty and len(spy)>=200 and {"date","open","high","low","close","volume"}.issubset(spy.columns):
+            spy_ctx=market_context(spy)
+            benchmark_ok=True
+        else:
+            raise ValueError("benchmark too short or malformed")
+    except Exception as e:
+        print(f"SPY_BENCHMARK_DISABLED={e!r}",flush=True)
+        spy_ctx=pd.DataFrame({"date":pd.date_range("1990-01-01","2027-12-31",freq="D"),"spy_ret20":0.0,"spy_regime":True})
     out=Path(args.output_dir); out.mkdir(parents=True,exist_ok=True)
-    variants={"core":(False,False),"rs_regime":(True,True)}
+    variants={"core":(False,False)}
+    if benchmark_ok:
+        variants["rs_regime"]=(True,True)
     result={k:[] for k in variants}
     valid=0
     for idx,p in enumerate(files,1):
