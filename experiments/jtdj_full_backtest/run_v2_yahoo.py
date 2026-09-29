@@ -42,10 +42,14 @@ def main():
                                 allow_patterns=["data/daily/*.parquet"],max_workers=8))
     daily=root/"data"/"daily"
     files=sorted(daily.glob("*.parquet"))
-    spy_path=daily/"SPY.parquet"
+    spy_candidates=[p for p in files if p.stem.upper()=="SPY"]
+    if not spy_candidates:
+        raise RuntimeError("SPY parquet not found; sample files="+",".join(p.name for p in files[:20]))
+    spy_path=spy_candidates[0]
+    print(f"SPY_FILE={spy_path.name}",flush=True)
     spy=load_parquet(spy_path)
     if spy is None:
-        raise RuntimeError("SPY.parquet not found")
+        raise RuntimeError(f"Failed to load {spy_path}")
     spy_ctx=market_context(spy)
     out=Path(args.output_dir); out.mkdir(parents=True,exist_ok=True)
     variants={"core":(False,False),"rs_regime":(True,True)}
