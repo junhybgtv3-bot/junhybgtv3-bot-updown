@@ -1,0 +1,43 @@
+name: JTDJ V3 Portfolio Yahoo
+
+on:
+  push:
+    branches: [jtdj-full-backtest-20260929]
+    paths:
+      - 'experiments/jtdj_full_backtest/portfolio_v3.py'
+      - '.github/workflows/jtdj-v3-portfolio-yahoo.yml'
+
+jobs:
+  portfolio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install --disable-pip-version-check numpy pandas pyarrow huggingface_hub hf_xet
+      - name: Download Yahoo dataset and rebuild V2 trades
+        working-directory: experiments/jtdj_full_backtest
+        run: |
+          python run_v2_yahoo.py \
+            --data-dir /tmp/yahoo_v3_portfolio \
+            --output-dir ../../results/jtdj_v2_yahoo_portfolio \
+            --start 2020-01-01 \
+            --end 2026-09-25
+      - name: Run locked V3 portfolio simulation
+        working-directory: experiments/jtdj_full_backtest
+        run: |
+          python portfolio_v3.py \
+            --trades ../../results/jtdj_v2_yahoo_portfolio/trades_core.csv \
+            --price-root /tmp/yahoo_v3_portfolio/data/daily \
+            --source yahoo \
+            --output-dir ../../results/jtdj_v3_portfolio_yahoo
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jtdj-v3-portfolio-yahoo
+          path: results/jtdj_v3_portfolio_yahoo/
+          if-no-files-found: warn
