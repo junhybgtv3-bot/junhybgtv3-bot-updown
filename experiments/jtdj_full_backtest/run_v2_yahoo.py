@@ -43,13 +43,16 @@ def main():
     daily=root/"data"/"daily"
     files=sorted(daily.glob("*.parquet"))
     spy_candidates=[p for p in files if p.stem.upper()=="SPY"]
-    if not spy_candidates:
-        raise RuntimeError("SPY parquet not found; sample files="+",".join(p.name for p in files[:20]))
-    spy_path=spy_candidates[0]
-    print(f"SPY_FILE={spy_path.name}",flush=True)
-    spy=load_parquet(spy_path)
-    if spy is None:
-        raise RuntimeError(f"Failed to load {spy_path}")
+    if spy_candidates:
+        spy_path=spy_candidates[0]
+        print(f"SPY_FILE={spy_path.name}",flush=True)
+        spy=load_parquet(spy_path)
+    else:
+        print(f"SPY_FILE_EXTERNAL={args.spy_csv}",flush=True)
+        spy=pd.read_csv(args.spy_csv)
+        spy.columns=[str(x).lower() for x in spy.columns]
+    if spy is None or spy.empty:
+        raise RuntimeError("Failed to load SPY benchmark")
     spy_ctx=market_context(spy)
     out=Path(args.output_dir); out.mkdir(parents=True,exist_ok=True)
     variants={"core":(False,False),"rs_regime":(True,True)}
