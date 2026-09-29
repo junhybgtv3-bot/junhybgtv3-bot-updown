@@ -1,0 +1,30 @@
+name: JTDJ V2 Yahoo Full Universe
+on:
+  push:
+    branches: [jtdj-full-backtest-20260929]
+    paths:
+      - 'experiments/jtdj_full_backtest/v2_engine.py'
+      - 'experiments/jtdj_full_backtest/run_v2_yahoo.py'
+      - '.github/workflows/jtdj-v2-yahoo.yml'
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      HF_HUB_DISABLE_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --disable-pip-version-check numpy pandas pyarrow huggingface_hub hf_xet
+      - name: Run v2 Yahoo
+        working-directory: experiments/jtdj_full_backtest
+        run: python run_v2_yahoo.py --output-dir ../../results/jtdj_v2_yahoo
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jtdj-v2-yahoo-results
+          path: results/jtdj_v2_yahoo/
+          if-no-files-found: warn
