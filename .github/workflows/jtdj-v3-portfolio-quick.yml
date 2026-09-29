@@ -5,6 +5,7 @@ on:
     branches: [jtdj-full-backtest-20260929]
     paths:
       - 'experiments/jtdj_full_backtest/portfolio_v3_quick.py'
+      - 'experiments/jtdj_full_backtest/portfolio_v3.py'
       - '.github/workflows/jtdj-v3-portfolio-quick.yml'
 
 permissions:
