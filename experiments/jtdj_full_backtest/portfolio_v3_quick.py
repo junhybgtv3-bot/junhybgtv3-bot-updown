@@ -32,7 +32,7 @@ def main():
 
     out=Path(args.output_dir); out.mkdir(parents=True,exist_ok=True)
     result={"locked_trades":len(trades),"symbols":len(syms),"priced_symbols":len(prices),"variants":{}}
-    for mp in [5,10,20]:
+    for mp in [1,2,3,5,10,20]:
         curve,ledger,stats=simulate(trades,prices,mp,initial_cash=100000.0,cost_side=.001)
         curve.to_csv(out/f"equity_max{mp}.csv",index=False)
         ledger.to_csv(out/f"ledger_max{mp}.csv",index=False)
