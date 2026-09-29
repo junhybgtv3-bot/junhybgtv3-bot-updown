@@ -37,6 +37,7 @@ def main():
     ap.add_argument("--output-dir",default="results/jtdj_v2_yahoo")
     ap.add_argument("--start",default="2020-01-01")
     ap.add_argument("--end",default="2026-09-25")
+    ap.add_argument("--spy-csv",default="/tmp/spy.csv")
     args=ap.parse_args()
     root=Path(snapshot_download(repo_id=DATASET_ID,repo_type="dataset",local_dir=args.data_dir,
                                 allow_patterns=["data/daily/*.parquet"],max_workers=8))
