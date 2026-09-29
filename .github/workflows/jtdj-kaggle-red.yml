@@ -1,0 +1,32 @@
+name: JTDJ Kaggle Red-Only Backtest
+on:
+  push:
+    branches: [jtdj-full-backtest-20260929]
+    paths:
+      - 'experiments/jtdj_full_backtest/run_kaggle_red.py'
+      - '.github/workflows/jtdj-kaggle-red.yml'
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install --disable-pip-version-check numpy pandas pyarrow huggingface_hub
+      - name: Download Kaggle dataset
+        run: |
+          mkdir -p /tmp/market
+          curl -L --fail --retry 3 "https://www.kaggle.com/api/v1/datasets/download/borismarjanovic/price-volume-data-for-all-us-stocks-etfs" -o /tmp/market.zip
+          unzip -q /tmp/market.zip -d /tmp/market
+      - name: Run red-only full universe
+        working-directory: experiments/jtdj_full_backtest
+        run: python run_kaggle_red.py --root /tmp/market --output-dir ../../results/jtdj_kaggle_red
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jtdj-kaggle-red-results
+          path: results/jtdj_kaggle_red/
+          if-no-files-found: warn
