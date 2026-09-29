@@ -125,11 +125,11 @@ def simulate(trades: pd.DataFrame, prices: dict[str,pd.DataFrame], max_positions
         # Exit first at the known V2 execution price; frees slots/cash for same-day entries.
         for key,p in list(pos.items()):
             if p["exit_date"] == d:
-                cash += p["shares"] * p["exit_price"]
+                cash += p["shares"] * p["exit_price"] * (1.0-cost_side)
                 ledger.append({
                     "symbol":p["symbol"],"entry_date":p["entry_date"],"exit_date":d,
                     "capital":p["capital"],"pnl":p["shares"]*p["exit_price"]-p["capital"],
-                    "return_on_allocated":p["exit_price"]/p["entry_price"]-1.0,
+                    "return_on_allocated":(p["exit_price"]*(1.0-cost_side))/(p["entry_price"]*(1.0+cost_side))-1.0,
                 })
                 del pos[key]
 
